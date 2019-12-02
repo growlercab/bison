@@ -407,7 +407,6 @@ warnings_print_categories (warnings warn_flags, FILE *out)
  *
  * \param loc     the location, defaulting to the current file,
  *                or the program name.
- * \param note    add "note: " before the message
  * \param flags   the category for this message.
  * \param sever   to decide the prefix to put before the message
  *                (e.g., "warning").
@@ -419,7 +418,7 @@ warnings_print_categories (warnings warn_flags, FILE *out)
  */
 static
 void
-error_message (const location *loc, warnings flags, const bool note,
+error_message (const location *loc, warnings flags,
                severity sever, const char *message, va_list args)
 {
   int pos = 0;
@@ -430,21 +429,21 @@ error_message (const location *loc, warnings flags, const bool note,
     pos += fprintf (stderr, "%s", grammar_file ? grammar_file : program_name);
   pos += fprintf (stderr, ": ");
 
-  const char* style = severity_style (sever);
-//fprintf(stderr, " (NOTE: %d, SEVER: %d %s) ", note, sever, severity_prefix (sever));
+  const char* style = flags & note ? "note" : severity_style (sever);
+  //fprintf(stderr, " (NOTE: %d, SEVER: %d %s) ", flags & note, sever, severity_prefix (sever));
 
-  //if (sever != severity_disabled)
-  //{
+  if (sever != severity_disabled)
+    {
       begin_use_class (style, stderr);
-      fprintf (stderr, "%s:", note ? "note" : severity_prefix (sever));
+      fprintf (stderr, "%s:", flags & note ? _("note") : severity_prefix (sever));
       end_use_class (style, stderr);
       fputc (' ', stderr);
-    //}
+    }
 
   vfprintf (stderr, message, args);
   /* Print the type of warning, only if this is not a sub message
      (in which case the prefix is null).  */
-  if (! (flags & silent) && !note)
+  if (! (flags & silent) && sever != severity_disabled)
     warnings_print_categories (flags, stderr);
 
   {
@@ -463,7 +462,7 @@ error_message (const location *loc, warnings flags, const bool note,
 /** Raise a complaint (fatal error, error or just warning).  */
 
 static void
-complains (const location *loc, warnings flags, const bool note,
+complains (const location *loc, warnings flags,
            const char *message, va_list args)
 {
   severity s = warning_severity (flags);
@@ -474,7 +473,7 @@ complains (const location *loc, warnings flags, const bool note,
     {
       if (severity_error <= s && ! complaint_status)
         complaint_status = status_warning_as_error;
-      error_message (loc, flags, note, s, message, args);
+      error_message (loc, flags, s, message, args);
     }
 
   if (flags & fatal)
@@ -486,7 +485,7 @@ complain (location const *loc, warnings flags, const char *message, ...)
 {
   va_list args;
   va_start (args, message);
-  complains (loc, flags, false, message, args);
+  complains (loc, flags, message, args);
   va_end (args);
 }
 
@@ -495,7 +494,7 @@ subcomplain (location const *loc, warnings flags, const char *message, ...)
 {
   va_list args;
   va_start (args, message);
-  complains (loc, flags, true, message, args);
+  complains (loc, flags | note | silent, message, args);
   va_end (args);
 }
 
@@ -506,20 +505,19 @@ complain_args (location const *loc, warnings w,
   switch (argc)
   {
   case 1:
-    subcomplain (loc, w, "%s", _(argv[0]));
+    complain (loc, w, "%s", _(argv[0]));
     break;
   case 2:
-    subcomplain (loc, w, _(argv[0]), argv[1]);
+    complain (loc, w, _(argv[0]), argv[1]);
     break;
   case 3:
-    subcomplain (loc, w, _(argv[0]), argv[1], argv[2]);
+    complain (loc, w, _(argv[0]), argv[1], argv[2]);
     break;
   case 4:
-    subcomplain (loc, w, _(argv[0]), argv[1], argv[2], argv[3]);
+    complain (loc, w, _(argv[0]), argv[1], argv[2], argv[3]);
     break;
   case 5:
-    subcomplain (loc, w, _(argv[0]), argv[1], argv[2], argv[3],
-                     argv[4]);
+    complain (loc, w, _(argv[0]), argv[1], argv[2], argv[3], argv[4]);
     break;
   default:
     complain (loc, fatal, "too many arguments for complains");

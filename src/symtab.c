@@ -316,9 +316,7 @@ complain_class_redeclared (symbol *sym, symbol_class class, location second)
             ? _("symbol %s redeclared as a token")
             : _("symbol %s redeclared as a nonterminal"), sym->tag);
   if (!location_empty (sym->location))
-    {
-      subcomplain (&sym->location, complaint, _("previous definition"));
-    }
+    subcomplain (&sym->location, complaint, _("previous definition"));
 }
 
 static const symbol *

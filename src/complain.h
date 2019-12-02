@@ -114,6 +114,7 @@ typedef enum
     fatal             = 1 << 12, /**< All fatal errors.  */
     silent            = 1 << 13, /**< Do not display the warning type.  */
     no_caret          = 1 << 14, /**< Do not display caret location.  */
+    note              = 1 << 16, /**< Display as a note.  */
 
     /**< All above warnings.  */
     Weverything       = ~complaint & ~fatal & ~silent,
@@ -137,7 +138,7 @@ void complain_args (location const *loc, warnings w,
 
 /** Make a subcomplain with location and note.  */
 void subcomplain (location const *loc, warnings flags,
-                      char const *message, ...)
+                  char const *message, ...)
   __attribute__ ((__format__ (__printf__, 3, 4)));
 
 
