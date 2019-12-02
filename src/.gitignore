@@ -10,3 +10,4 @@
 /scan-gram.c
 /scan-skel.c
 /yacc
+../examples

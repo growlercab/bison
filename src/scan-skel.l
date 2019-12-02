@@ -209,7 +209,6 @@ at_basename (int argc, char *argv[], char **out_namep, int *out_linenop)
 static void
 at_complain (int argc, char *argv[], char **out_namep, int *out_linenop)
 {
-  static int indent;
   warnings w = flag (argv[1]);
   location loc;
   location *locp = NULL;
@@ -225,13 +224,7 @@ at_complain (int argc, char *argv[], char **out_namep, int *out_linenop)
       boundary_set_from_string (&loc.end, argv[3]);
       locp = &loc;
     }
-  if (w & silent)
-    indent += SUB_INDENT;
-  else
-    indent = 0;
-  complain_args (locp, w, &indent, argc - 4, argv + 4);
-  if (w & silent)
-    indent -= SUB_INDENT;
+  complain_args (locp, w, argc - 4, argv + 4);
 }
 
 static void
